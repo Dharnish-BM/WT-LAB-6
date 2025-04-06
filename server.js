@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const cors = require('cors');
 
 const app = express();
@@ -17,7 +17,7 @@ async function connectDB() {
     return client.db(DB_NAME).collection(COLLECTION_NAME);
 }
 
-// CREATE (Insert Student)
+// CREATE - Add new student
 app.post('/add-student', async (req, res) => {
     try {
         const collection = await connectDB();
@@ -28,7 +28,7 @@ app.post('/add-student', async (req, res) => {
     }
 });
 
-// READ (Get All Students)
+// READ - Get all students
 app.get('/get-students', async (req, res) => {
     try {
         const collection = await connectDB();
@@ -39,14 +39,17 @@ app.get('/get-students', async (req, res) => {
     }
 });
 
-// UPDATE (Modify Student Details)
-app.put('/update-student/:roll', async (req, res) => {
+// UPDATE - Update student by MongoDB _id
+app.put('/update-student/:id', async (req, res) => {
     try {
         const collection = await connectDB();
-        const { roll } = req.params;
+        const { id } = req.params;
         const updatedData = req.body;
 
-        const result = await collection.updateOne({ roll }, { $set: updatedData });
+        const result = await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: updatedData }
+        );
 
         if (result.modifiedCount === 0) {
             return res.status(404).json({ error: "Student not found or data unchanged" });
@@ -58,7 +61,7 @@ app.put('/update-student/:roll', async (req, res) => {
     }
 });
 
-// DELETE (Remove Student)
+// DELETE - Remove student by roll number
 app.delete('/delete-student/:roll', async (req, res) => {
     try {
         const collection = await connectDB();
@@ -69,4 +72,6 @@ app.delete('/delete-student/:roll', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+app.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
